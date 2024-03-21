@@ -1,0 +1,92 @@
+﻿﻿﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = null;
+}
+@model IEnumerable<Components>
+<input type="hidden" name="accion" value="@ViewBag.Accion" />
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Type)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Description)
+            </th>
+            <th>
+                @if (ViewBag.Accion == "Create" || ViewBag.Accion == "Edit")
+                {
+                    <button type="submit" class="btn btn-outline-secondary" formaction="@Url.Action("AgregarDetalles")">Agregar</button>
+                }
+
+            </th>
+        </tr>
+
+    </thead>
+    <tbody>
+        @{
+            int index = -1;
+        }
+        @if (Model != null && Model.Count() > 0)
+        {
+            @foreach (var item in Model)
+            {
+                index++;
+                // var hidde = "table";
+                if (item.Id > -1)
+                {
+                    <tr>
+                        <td>
+                            <input type="hidden" value="@item.Id" name="Components[@index].Id">
+                            <input type="hidden" value="@item.ComputerId" name="Components[@index].ComputerId">
+                            <input class="form-control" data-readonly type="text" name="Components[@index].Name" value="@item.Name">
+                        </td>
+                        <td>
+                            <input class="form-control" data-readonly type="text" name="Components[@index].Type" value="@item.Type">
+                        </td>
+                        <td>
+                            <input class="form-control" data-readonly type="text" name="Components[@index].Description" value="@item.Description">
+                        </td>
+                        <td>
+                            @if (ViewBag.Accion == "Create" || ViewBag.Accion == "Edit")
+                            {
+                                <button name="index" value="@index" class="btn btn-outline-secondary" type="submit" formaction="@Url.Action("EliminarDetalles")">Eliminar</button>
+                            }
+
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    <tr style="display:none">
+                        <td>
+                            <input type="hidden" value="@item.Id" name="Components[@index].Id">
+                            <input type="hidden" value="@item.ComputerId" name="Components[@index].ComputerId">
+                            <input type="hidden" name="Components[@index].Name" value="@item.Name">
+                            <input type="hidden" name="Components[@index].Type" value="@item.Type">
+                            <input type="hidden" name="Components[@index].Description" value="@item.Description">
+                        </td>
+                    </tr>
+                }
+            }
+        }
+
+    </tbody>
+</table>
+@if (ViewBag.Accion == "Details" || ViewBag.Accion == "Delete")
+{
+    <script>
+        const readOnly = document.querySelectorAll("*[data-readonly]");
+        for (var i = 0; i < readOnly.length; i++) {
+            const item = readOnly[i];
+            item.setAttribute("readonly", true);
+        }
+
+    </script>
+}
+}
