@@ -47,6 +47,7 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
         // GET: Users/Create
         public IActionResult Create()
         {
+            
             return View();
         }
 
@@ -55,15 +56,22 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,UserName,Password,Email,Status,Image,RolesId")] Users users)
+        public async Task<IActionResult> Create([Bind("Id,UserName,Password,Email,Status,Image,RolesId")] Users users, IFormFile imagen)
         {
-            if (ModelState.IsValid)
+            if (imagen != null && imagen.Length > 0)
             {
-                _context.Add(users);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                using (var memoryStream = new MemoryStream())
+                {
+                    await imagen.CopyToAsync(memoryStream);
+                    users.Image = memoryStream.ToArray();
+                }
             }
-            return View(users);
+
+
+            _context.Add(users);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+            //return View(users);
         }
 
         // GET: Users/Edit/5
@@ -87,19 +95,39 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,UserName,Password,Email,Status,Image,RolesId")] Users users)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,UserName,Password,Email,Status,Image,RolesId")] Users users, IFormFile imagen)
         {
             if (id != users.Id)
             {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            if (imagen != null && imagen.Length > 0)
             {
-                try
+                using (var memoryStream = new MemoryStream())
                 {
-                    _context.Update(users);
-                    await _context.SaveChangesAsync();
+                    await imagen.CopyToAsync(memoryStream);
+                    users.Image = memoryStream.ToArray();
+                }
+                _context.Update(users);
+                await _context.SaveChangesAsync();
+            }
+
+            else
+            {
+                var producFind = await _context.Users.FirstOrDefaultAsync(s => s.Id == users.Id);
+                if (producFind?.Image?.Length > 0)
+                    users.Image = producFind.Image;
+                producFind.UserName = users.UserName;
+                producFind.Email = users.Email;
+                producFind.Status = users.Status;
+                producFind.RolesId = users.RolesId;
+                _context.Update(producFind);
+                await _context.SaveChangesAsync();
+            }
+             try
+                {
+                   
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -113,8 +141,8 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
                     }
                 }
                 return RedirectToAction(nameof(Index));
-            }
-            return View(users);
+            
+            //return View(users);
         }
 
         // GET: Users/Delete/5
