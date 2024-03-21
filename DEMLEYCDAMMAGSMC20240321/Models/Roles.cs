@@ -5,6 +5,10 @@ namespace DEMLEYCDAMMAGSMC20240321.Models
     
     public class Roles
     {
+        public Roles()
+        {
+            Users = new HashSet<Users>();
+        }
         public int Id { get; set; }
 
         [Required(ErrorMessage = "El nombre es obligatorio.")]

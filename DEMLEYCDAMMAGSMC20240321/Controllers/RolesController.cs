@@ -21,9 +21,9 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
         // GET: Roles
         public async Task<IActionResult> Index()
         {
-              return _context.Roles != null ? 
-                          View(await _context.Roles.ToListAsync()) :
-                          Problem("Entity set 'ApplicationDbContext.Roles'  is null.");
+            return _context.Roles != null ?
+                View(await _context.Roles.ToListAsync()) :
+                Problem("Entity set 'ApplicationDbContext.Roles' is null.");
         }
 
         // GET: Roles/Details/5
@@ -34,14 +34,14 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
                 return NotFound();
             }
 
-            var roles = await _context.Roles
+            var rol = await _context.Roles
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (roles == null)
+            if (rol == null)
             {
                 return NotFound();
             }
 
-            return View(roles);
+            return View(rol);
         }
 
         // GET: Roles/Create
@@ -51,8 +51,6 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
         }
 
         // POST: Roles/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Name,Description")] Roles roles)
@@ -74,17 +72,15 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
                 return NotFound();
             }
 
-            var roles = await _context.Roles.FindAsync(id);
-            if (roles == null)
+            var role = await _context.Roles.FindAsync(id);
+            if (role == null)
             {
                 return NotFound();
             }
-            return View(roles);
+            return View(role);
         }
 
         // POST: Roles/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description")] Roles roles)
@@ -103,7 +99,7 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!RolesExists(roles.Id))
+                    if (!await _context.Roles.AnyAsync(r => r.Id == id))
                     {
                         return NotFound();
                     }
@@ -117,6 +113,7 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
             return View(roles);
         }
 
+
         // GET: Roles/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
@@ -125,38 +122,14 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
                 return NotFound();
             }
 
-            var roles = await _context.Roles
+            var role = await _context.Roles
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (roles == null)
+            if (role == null)
             {
                 return NotFound();
             }
 
-            return View(roles);
-        }
-
-        // POST: Roles/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            if (_context.Roles == null)
-            {
-                return Problem("Entity set 'ApplicationDbContext.Roles'  is null.");
-            }
-            var roles = await _context.Roles.FindAsync(id);
-            if (roles != null)
-            {
-                _context.Roles.Remove(roles);
-            }
-            
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-
-        private bool RolesExists(int id)
-        {
-          return (_context.Roles?.Any(e => e.Id == id)).GetValueOrDefault();
+            return View(role);
         }
     }
 }

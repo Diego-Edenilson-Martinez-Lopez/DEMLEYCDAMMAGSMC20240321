@@ -8,7 +8,7 @@ namespace DEMLEYCDAMMAGSMC20240321.Models
 
         public Users()
         {
-            Roles = new List<Roles>();
+            Roles = new HashSet<Roles>();
         }
 
         [Key]
@@ -43,6 +43,6 @@ namespace DEMLEYCDAMMAGSMC20240321.Models
         [Display(Name = "Rol")]
         public int RolesId { get; set; }
 
-        public virtual IList<Roles> Roles { get; set; }
+        public virtual ICollection<Roles> Roles { get; set; }
     }
 }
