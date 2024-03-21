@@ -10,7 +10,7 @@ namespace DEMLEYCDAMMAGSMC20240321.Models
         [StringLength(50, ErrorMessage = "El nombre debe tener como máximo 50 caracteres.")]
         public string? Name { get; set; }
 
-        [StringLength(50, ErrorMessage = "La descripción debe tener como máximo 50 caracteres.")]
+        [StringLength(50, ErrorMessage = "La descripción debe tener como máximo 50 caracteres")]
         public string? Description { get; set; }
     }
 
