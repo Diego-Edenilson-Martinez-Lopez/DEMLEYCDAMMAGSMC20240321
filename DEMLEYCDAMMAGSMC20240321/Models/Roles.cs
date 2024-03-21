@@ -2,6 +2,7 @@
 
 namespace DEMLEYCDAMMAGSMC20240321.Models
 {
+    
     public class Roles
     {
         public int Id { get; set; }
@@ -12,6 +13,8 @@ namespace DEMLEYCDAMMAGSMC20240321.Models
 
         [StringLength(50, ErrorMessage = "La descripción debe tener como máximo 50 caracteres")]
         public string? Description { get; set; }
+
+        public virtual ICollection<Users> Users { get; set; }
     }
 
 }

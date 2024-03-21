@@ -5,6 +5,12 @@ namespace DEMLEYCDAMMAGSMC20240321.Models
 {
     public class Users
     {
+
+        public Users()
+        {
+            Roles = new List<Roles>();
+        }
+
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
@@ -29,6 +35,8 @@ namespace DEMLEYCDAMMAGSMC20240321.Models
         public byte[] Image { get; set; }
 
         [Required(ErrorMessage = "El rol es obligatorio.")]
-        public int Rol { get; set; }
+        public int RolesId { get; set; }
+
+        public virtual IList<Roles> Roles { get; set; }
     }
 }
