@@ -35,19 +35,27 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
             }
 
             var computers = await _context.Computers
+                .Include(s=> s.Components)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (computers == null)
             {
                 return NotFound();
             }
-
+            ViewBag.Accion = "Details";
             return View(computers);
         }
 
         // GET: Computers/Create
         public IActionResult Create()
         {
-            return View();
+            var Computers = new Computers();
+            Computers.Components = new List<Components>();
+            Computers.Components.Add(new Components
+            {
+
+            });
+            ViewBag.Accion = "Create";
+            return View(Computers);
         }
 
         // POST: Computers/Create
@@ -55,15 +63,33 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Brand")] Computers computers)
+        public async Task<IActionResult> Create([Bind("Id,Name,Brand,Components")] Computers computers)
         {
-            if (ModelState.IsValid)
+            _context.Add(computers);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+            //return View(computers);
+        }
+        public ActionResult AgregarDetalles([Bind("Id,Name,Brand,Components")] Computers computers, string accion)
+        {
+            computers.Components.Add(new Components { });
+            ViewBag.Accion = accion;
+            return View(accion, computers);
+        }
+        public ActionResult EliminarDetalles([Bind("Id,Name,Brand,Components")] Computers computers, int index, string accion)
+        {
+            var det = computers.Components[index];
+            if (accion == "Edit" && det.Id > 0)
             {
-                _context.Add(computers);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                det.Id = det.Id * -1;
             }
-            return View(computers);
+            else
+            {
+                computers.Components.RemoveAt(index);
+            }
+
+            ViewBag.Accion = accion;
+            return View(accion, computers);
         }
 
         // GET: Computers/Edit/5
@@ -74,11 +100,14 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
                 return NotFound();
             }
 
-            var computers = await _context.Computers.FindAsync(id);
+            var computers = await _context.Computers
+                .Include(s=> s.Components)
+                .FirstAsync(s=> s.Id==id);
             if (computers == null)
             {
                 return NotFound();
             }
+            ViewBag.Accion = "Edit";
             return View(computers);
         }
 
@@ -87,34 +116,64 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Brand")] Computers computers)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Brand,Components")] Computers computers)
         {
             if (id != computers.Id)
             {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            try
             {
-                try
+                // Obtener los datos de la base de datos que van a ser modificados
+                var facturaUpdate = await _context.Computers
+                        .Include(s => s.Components)
+                        .FirstAsync(s => s.Id == computers.Id);
+                facturaUpdate.Name = computers.Name;
+                facturaUpdate.Brand = computers.Brand;
+                // Obtener todos los detalles que seran nuevos y agregarlos a la base de datos
+                var detNew = computers.Components.Where(s => s.Id == 0);
+                foreach (var d in detNew)
                 {
-                    _context.Update(computers);
-                    await _context.SaveChangesAsync();
+                    facturaUpdate.Components.Add(d);
                 }
-                catch (DbUpdateConcurrencyException)
+                // Obtener todos los detalles que seran modificados y actualizar a la base de datos
+                var detUpdate = computers.Components.Where(s => s.Id > 0);
+                foreach (var d in detUpdate)
                 {
-                    if (!ComputersExists(computers.Id))
+                    var det = facturaUpdate.Components.FirstOrDefault(s => s.Id == d.Id);
+                    det.Name = d.Name;
+                    det.Type = d.Type;
+                    det.Description = d.Description;
+                }
+                // Obtener todos los detalles que seran eliminados y actualizar a la base de datos
+                var delDet = computers.Components.Where(s => s.Id < 0).ToList();
+                if (delDet != null && delDet.Count > 0)
+                {
+                    foreach (var d in delDet)
                     {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
+                        d.Id = d.Id * -1;
+                        var det = facturaUpdate.Components.FirstOrDefault(s => s.Id == d.Id);
+                        _context.Remove(det);
+                        // facturaUpdate.DetFacturaVenta.Remove(det);
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                // Aplicar esos cambios a la base de datos
+                _context.Update(facturaUpdate);
+                await _context.SaveChangesAsync();
             }
-            return View(computers);
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!ComputersExists(computers.Id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Computers/Delete/5
@@ -126,12 +185,13 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
             }
 
             var computers = await _context.Computers
+                .Include(s=> s.Components)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (computers == null)
             {
                 return NotFound();
             }
-
+            ViewBag.Accion = "Delete";
             return View(computers);
         }
 

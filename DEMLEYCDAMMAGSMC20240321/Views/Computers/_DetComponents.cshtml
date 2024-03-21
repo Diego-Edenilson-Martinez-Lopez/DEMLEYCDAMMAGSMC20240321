@@ -55,7 +55,7 @@
                         <td>
                             @if (ViewBag.Accion == "Create" || ViewBag.Accion == "Edit")
                             {
-                                <button name="index" value="@index" class="btn btn-outline-secondary" type="submit" formaction="@Url.Action("EliminarDetalles")">Eliminar</button>
+                                <button name="index" value="@index" class="btn btn-outline-danger" type="submit" formaction="@Url.Action("EliminarDetalles")">Eliminar</button>
                             }
 
                         </td>
@@ -88,5 +88,4 @@
         }
 
     </script>
-}
 }
