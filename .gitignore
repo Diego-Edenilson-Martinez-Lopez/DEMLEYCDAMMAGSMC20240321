@@ -361,3 +361,5 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/DEMLEYCDAMMAGSMC20240321/Migrations
+/DEMLEYCDAMMAGSMC20240321/appsettings.json
