@@ -52,27 +52,40 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
         // GET: Users/Create
         public IActionResult Create()
         {
+            ViewData["RolesId"] = new SelectList(_context.Roles, "Id", "Name");
             return View();
         }
 
         // POST: Users/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,UserName,Password,Email,Status,RolesId")] Users user)
+        public async Task<IActionResult> Create([Bind("Id,UserName,Password,Email,Status,RolesId")] Users user, IFormFile imagen)
         {
-            if (ModelState.IsValid)
+
+            if (imagen != null && imagen.Length > 0)
             {
-                _context.Add(user);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                using (var memoryStream = new MemoryStream())
+                {
+                    await imagen.CopyToAsync(memoryStream);
+                    user.Image = memoryStream.ToArray();
+                }
             }
-            return View(user);
+             _context.Add(user);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+
+
+            //if (ModelState.IsValid)
+            //{
+
+            //}
+            //return View(user);
         }
 
         // GET: Users/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
+            if (id == null || _context.Users == null)
             {
                 return NotFound();
             }
@@ -82,25 +95,45 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
             {
                 return NotFound();
             }
+            ViewData["RolesId"] = new SelectList(_context.Roles, "Id", "Name", "Description", user.RolesId );
             return View(user);
         }
 
         // POST: Users/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,UserName,Password,Email,Status,RolesId")] Users user)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,UserName,Password,Email,Status,RolesId")] Users user, IFormFile imagen)
         {
             if (id != user.Id)
             {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            if (imagen != null && imagen.Length > 0)
             {
+                using (var memoryStream = new MemoryStream())
+                {
+                    await imagen.CopyToAsync(memoryStream);
+                    user.Image = memoryStream.ToArray();
+                }
+                _context.Update(user);
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                var producFind = await _context.Users.FirstOrDefaultAsync(s => s.Id == user.Id);
+                if (producFind?.Image?.Length > 0)
+                    user.Image = producFind.Image;
+                producFind.UserName = user.UserName;
+                producFind.Image = user.Image;
+                producFind.Email = user.Email;
+                producFind.RolesId = user.RolesId;
+                _context.Update(producFind);
+                await _context.SaveChangesAsync();
+            }
                 try
                 {
-                    _context.Update(user);
-                    await _context.SaveChangesAsync();
+                  
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -114,7 +147,7 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
                     }
                 }
                 return RedirectToAction(nameof(Index));
-            }
+            
             return View(user);
         }
 
@@ -127,6 +160,7 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
             }
 
             var user = await _context.Users
+
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (user == null)
             {
