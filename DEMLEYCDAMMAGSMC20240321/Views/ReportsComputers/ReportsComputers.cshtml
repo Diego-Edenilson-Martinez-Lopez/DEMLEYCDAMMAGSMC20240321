@@ -4,29 +4,35 @@
     Layout = null;
 }
 
-<table>
-    <thead>
-        <tr>
-            <th>Nombre</th>
-            <th>Marca</th>
-            <th>Descripción de Componentes</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var computadora in Model)
-        {
-            <tr>
-                <td>@computadora.Name</td>
-                <td>@computadora.Brand</td>
-                <td>
-                    <ul>
-                        @foreach (var componente in computadora.Components)
-                        {
-                            <li>@componente.Description</li>
-                        }
-                    </ul>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<div class="container">
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead class="table-primary">
+                <tr>
+                    <th scope="col">Nombre</th>
+                    <th scope="col">Marca</th>
+                    <th scope="col">Descripción de Componentes</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var computadora in Model)
+                {
+                    <tr>
+                        <td>@computadora.Name</td>
+                        <td>@computadora.Brand</td>
+                        <td>
+                            <ul class="list-group">
+                                @foreach (var componente in computadora.Components)
+                                {
+                                    <li class="list-group-item">@componente.Description</li>
+                                }
+                            </ul>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

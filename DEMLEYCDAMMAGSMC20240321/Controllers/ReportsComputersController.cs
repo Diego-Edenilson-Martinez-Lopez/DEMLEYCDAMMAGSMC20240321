@@ -50,9 +50,20 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
                 using (var package = new ExcelPackage())
                 {
                     ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Computadoras");
+
+                    // Establecer los encabezados de las columnas
                     worksheet.Cells["A1"].Value = "Nombre";
                     worksheet.Cells["B1"].Value = "Marca";
                     worksheet.Cells["C1"].Value = "Descripción de Componentes";
+
+                    // Aplicar estilos a los encabezados
+                    using (var range = worksheet.Cells["A1:C1"])
+                    {
+                        range.Style.Font.Bold = true;
+                        range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                        range.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+                        range.Style.Border.BorderAround(OfficeOpenXml.Style.ExcelBorderStyle.Thin);
+                    }
 
                     int row = 2;
                     foreach (var computadora in computadoras)
@@ -63,14 +74,18 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
                         row++;
                     }
 
-                    var range = worksheet.Cells["A1:C" + row];
-                    range.AutoFilter = true;
+                    // Autoajustar el ancho de las columnas
+                    worksheet.Cells.AutoFitColumns();
 
+                    // Convertir el paquete a un array de bytes
                     byte[] fileContents = package.GetAsByteArray();
 
+                    // Devolver el archivo Excel como una descarga
                     return File(fileContents, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "computadoras.xlsx");
                 }
-            }
+            
+
+        }
             else
             {
                 return Content("Opción no válida");
