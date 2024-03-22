@@ -15,7 +15,7 @@ using System.Text;
 
 namespace DEMLEYCDAMMAGSMC20240321.Controllers
 {
-   
+
     public class UsersController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -62,16 +62,25 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
         // POST: Users/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,UserName,Password,Email,Status,Image,RolesId")] Users user, IFormFile? image)
+        public async Task<IActionResult> Create([Bind("Id,UserName,Password,Email,Status,Image,RolesId")] Users user, IFormFile imagen)
         {
 
             if (imagen != null && imagen.Length > 0)
             {
-                _context.Add(user);
+
+                using (var memoryStream = new MemoryStream())
+                {
+                    await imagen.CopyToAsync(memoryStream);
+
+                    user.Image = memoryStream.ToArray();
+
+                }
+            }
+                    _context.Add(user);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
-            }
-            return View(user);
+            
+            
         }
 
         // GET: Users/Edit/5
@@ -87,13 +96,14 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
             {
                 return NotFound();
             }
+            ViewData["RolesId"] = new SelectList(_context.Roles, "RolesId", "Name", user.RolesId);
             return View(user);
         }
 
         // POST: Users/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,UserName,Password,Email,Status,RolesId")] Users user)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,UserName,Password,Email,Status,RolesId")] Users user, IFormFile imagen)
         {
             if (id != user.Id)
             {
@@ -104,23 +114,45 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
             {
                 using (var memoryStream = new MemoryStream())
                 {
-                    _context.Update(user);
-                    await _context.SaveChangesAsync();
+                    await imagen.CopyToAsync(memoryStream); // Copia el contenido de la imagen al MemoryStream
+                    user.Image = memoryStream.ToArray();
                 }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!UserExists(user.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                _context.Update(user);
+                await _context.SaveChangesAsync();
             }
-            return View(user);
+            else
+            {
+                var registroFind = await _context.Users.FirstOrDefaultAsync(s => s.Id == user.Id);
+
+                if (registroFind?.Image?.Length > 0)
+                    user.Image = registroFind.Image;
+
+                registroFind.UserName = user.UserName;
+                registroFind.Email = user.Email;              
+                registroFind.Status = user.Status;
+                registroFind.RolesId = user.RolesId;
+                
+
+                _context.Update(registroFind);
+                await _context.SaveChangesAsync();
+
+            }
+            return RedirectToAction(nameof(Index));
+
+            //    catch (DbUpdateConcurrencyException);
+            //    {
+            //        if (!UserExists(user.Id))
+            //        {
+            //            return NotFound();
+            //        }
+            //        else
+            //        {
+            //            throw;
+            //        }
+            //    }
+            //    return RedirectToAction(nameof(Index));
+            //}
+            //return View(user);
         }
 
         // GET: Users/Delete/5
