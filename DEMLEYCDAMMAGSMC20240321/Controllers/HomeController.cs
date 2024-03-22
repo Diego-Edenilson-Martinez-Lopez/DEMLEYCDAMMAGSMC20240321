@@ -1,9 +1,11 @@
 ﻿using DEMLEYCDAMMAGSMC20240321.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
 namespace DEMLEYCDAMMAGSMC20240321.Controllers
 {
+    [Authorize]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;

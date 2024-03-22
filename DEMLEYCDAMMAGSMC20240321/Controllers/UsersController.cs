@@ -15,6 +15,7 @@ using System.Text;
 
 namespace DEMLEYCDAMMAGSMC20240321.Controllers
 {
+   
     public class UsersController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -27,7 +28,8 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
         // GET: Users
         public async Task<IActionResult> Index()
         {
-            var users = await _context.Users.ToListAsync();
+
+            var users = await _context.Users.Include(u => u.Roles).ToListAsync();
             return View(users);
         }
 
@@ -40,6 +42,7 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
             }
 
             var user = await _context.Users
+                .Include(u => u.Roles)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (user == null)
             {
@@ -59,27 +62,16 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
         // POST: Users/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,UserName,Password,Email,Status,RolesId")] Users user, IFormFile imagen)
+        public async Task<IActionResult> Create([Bind("Id,UserName,Password,Email,Status,Image,RolesId")] Users user, IFormFile? image)
         {
 
             if (imagen != null && imagen.Length > 0)
             {
-                using (var memoryStream = new MemoryStream())
-                {
-                    await imagen.CopyToAsync(memoryStream);
-                    user.Image = memoryStream.ToArray();
-                }
+                _context.Add(user);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
             }
-             _context.Add(user);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-
-
-            //if (ModelState.IsValid)
-            //{
-
-            //}
-            //return View(user);
+            return View(user);
         }
 
         // GET: Users/Edit/5
@@ -95,14 +87,13 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
             {
                 return NotFound();
             }
-            ViewData["RolesId"] = new SelectList(_context.Roles, "Id", "Name", "Description" );
             return View(user);
         }
 
         // POST: Users/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,UserName,Password,Email,Status,RolesId")] Users user, IFormFile imagen)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,UserName,Password,Email,Status,RolesId")] Users user)
         {
             if (id != user.Id)
             {
@@ -113,27 +104,8 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
             {
                 using (var memoryStream = new MemoryStream())
                 {
-                    await imagen.CopyToAsync(memoryStream);
-                    user.Image = memoryStream.ToArray();
-                }
-                _context.Update(user);
-                await _context.SaveChangesAsync();
-            }
-            else
-            {
-                var producFind = await _context.Users.FirstOrDefaultAsync(s => s.Id == user.Id);
-                if (producFind?.Image?.Length > 0)
-                    user.Image = producFind.Image;
-                producFind.UserName = user.UserName;
-                producFind.Image = user.Image;
-                producFind.Email = user.Email;
-                producFind.RolesId = user.RolesId;
-                _context.Update(producFind);
-                await _context.SaveChangesAsync();
-            }
-                try
-                {
-                  
+                    _context.Update(user);
+                    await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -147,7 +119,7 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
                     }
                 }
                 return RedirectToAction(nameof(Index));
-            
+            }
             return View(user);
         }
 
@@ -160,7 +132,6 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
             }
 
             var user = await _context.Users
-
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (user == null)
             {
@@ -186,6 +157,24 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
             return _context.Users.Any(e => e.Id == id);
         }
 
+        private string CalcularHashMD5(string texto)
+        {
+            using (System.Security.Cryptography.MD5 md5 = System.Security.Cryptography.MD5.Create())
+            {
+                byte[] inputBytes = Encoding.UTF8.GetBytes(texto);
+                byte[] hashBytes = md5.ComputeHash(inputBytes);
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < hashBytes.Length; i++)
+                {
+                    sb.Append(hashBytes[i].ToString("x2"));
+                }
+                return sb.ToString();
+            }
+        }
+
+        // ---- ---- ---- ---- ---- ---- Login ---- ---- ---- ---- ---- ---- 
+        // ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- -
+
         [AllowAnonymous]
         public async Task<IActionResult> Login(string ReturnUrl)
         {
@@ -194,71 +183,37 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
             return View();
         }
 
-       
         [AllowAnonymous]
         [HttpPost]
         public async Task<IActionResult> Login([Bind("UserName,Password")] Users user, string ReturnUrl)
         {
-            user.Password = CalculateMD5Hash(user.Password);
-            var authenticatedUser = await _context.Users
-                .Include(u => u.Roles)
-                .FirstOrDefaultAsync(u => u.UserName == user.UserName && u.Password == user.Password);
-
-            if (authenticatedUser != null)
+            user.Password = CalcularHashMD5(user.Password);
+            var usuarioAut = await _context.Users.Include(u => u.Roles).FirstOrDefaultAsync(u => u.UserName == user.UserName && u.Password == user.Password);
+            if (usuarioAut?.Id > 0 && usuarioAut.UserName == user.UserName)
             {
-                var roleName = authenticatedUser.Roles.FirstOrDefault()?.Name;
-
-                if (!string.IsNullOrEmpty(roleName))
+                var claims = new[]
                 {
-                    var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, authenticatedUser.UserName),
-                new Claim(ClaimTypes.Role, roleName),
-                new Claim("Id", authenticatedUser.Id.ToString())
-            };
-
-                    var userIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                    await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(userIdentity), new AuthenticationProperties { IsPersistent = true });
-
-                    if (!string.IsNullOrWhiteSpace(ReturnUrl))
-                    {
-                        return Redirect(ReturnUrl);
-                    }
-                    else
-                    {
-                        return RedirectToAction("Index", "Home");
-                    }
-                }
+                    new Claim(ClaimTypes.Name, usuarioAut.UserName),
+                    new Claim(ClaimTypes.Role, usuarioAut.Roles.FirstOrDefault()?.Name),
+                    new Claim("Id", usuarioAut.Id.ToString())
+                };
+                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity), new AuthenticationProperties { IsPersistent = true });
+                if (!string.IsNullOrWhiteSpace(ReturnUrl))
+                    return Redirect(ReturnUrl);
                 else
-                {
-                    ViewBag.Error = "Credenciales incorrectas";
-                    ViewBag.ReturnUrl = ReturnUrl;
-                    return View(user);
-                }
+                    return RedirectToAction("Index", "Home");
             }
             else
-            {
                 ViewBag.Error = "Credenciales incorrectas";
-                ViewBag.ReturnUrl = ReturnUrl;
-                return View(user);
-            }
+            ViewBag.pReturnUrl = ReturnUrl;
+            return View(user);
         }
 
-        private string CalculateMD5Hash(string input)
+        public async Task<IActionResult> Logout()
         {
-            using (var md5 = MD5.Create())
-            {
-                byte[] inputBytes = Encoding.UTF8.GetBytes(input);
-                byte[] hashBytes = md5.ComputeHash(inputBytes);
-
-                StringBuilder sb = new StringBuilder();
-                for (int i = 0; i < hashBytes.Length; i++)
-                {
-                    sb.Append(hashBytes[i].ToString("x2"));
-                }
-
-                return sb.ToString();
-            }
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return RedirectToAction("Index", "Home");
         }
     }
 }

@@ -43,6 +43,8 @@ namespace DEMLEYCDAMMAGSMC20240321.Models
         [Display(Name = "Rol")]
         public int RolesId { get; set; }
 
+        [NotMapped]
+        public int Take { get; set; }
         public virtual ICollection<Roles> Roles { get; set; }
     }
 }
