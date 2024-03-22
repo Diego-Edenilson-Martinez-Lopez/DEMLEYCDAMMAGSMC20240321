@@ -95,7 +95,7 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
             {
                 return NotFound();
             }
-            ViewData["RolesId"] = new SelectList(_context.Roles, "Id", "Name", "Description", user.RolesId );
+            ViewData["RolesId"] = new SelectList(_context.Roles, "RolesId", "Name", "Description", user.RolesId);
             return View(user);
         }
 
