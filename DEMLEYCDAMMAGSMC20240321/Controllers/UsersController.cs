@@ -69,21 +69,19 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
         public async Task<IActionResult> Create([Bind("Id,UserName,Password,Email,Status,Image,RolesId")] Users user, IFormFile imagen)
         {
 
-            if (imagen != null && imagen.Length > 0)
-            {
-
-                using (var memoryStream = new MemoryStream())
+            
+                if (imagen != null && imagen.Length > 0)
                 {
-                    await imagen.CopyToAsync(memoryStream);
-
-                    user.Image = memoryStream.ToArray();
-
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        await imagen.CopyToAsync(memoryStream);
+                        user.Image = memoryStream.ToArray();
+                    }
                 }
-            }
-                    _context.Add(user);
+            ViewData["RolesId"] = new SelectList(_context.Roles, "Id", "Name");
+            _context.Add(user);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
-            
             
         }
 
@@ -221,11 +219,11 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
 
         [AllowAnonymous]
         [HttpPost]
-        public async Task<IActionResult> Login([Bind("UserName,Password")] Users user, string ReturnUrl)
+        public async Task<IActionResult> Login([Bind("Email,Password")] Users user, string ReturnUrl)
         {
             user.Password = CalcularHashMD5(user.Password);
-            var usuarioAut = await _context.Users.Include(u => u.Roles).FirstOrDefaultAsync(u => u.UserName == user.UserName && u.Password == user.Password);
-            if (usuarioAut?.Id > 0 && usuarioAut.UserName == user.UserName)
+            var usuarioAut = await _context.Users.Include(u => u.Roles).FirstOrDefaultAsync(u => u.Email == user.Email && u.Password == user.Password);
+            if (usuarioAut?.Id > 0 && usuarioAut.Email == user.Email)
             {
                 var claims = new[]
                 {
