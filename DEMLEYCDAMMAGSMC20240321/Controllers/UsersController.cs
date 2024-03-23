@@ -29,8 +29,11 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
         public async Task<IActionResult> Index()
         {
 
-            var users = await _context.Users.Include(u => u.Roles).ToListAsync();
-            return View(users);
+            //var users = await _context.Users.Include(u => u.Roles).ToListAsync();
+            //return View(users);
+
+            var AplicationDBContext = _context.Users.Include(p => p.Roles);
+            return View(await AplicationDBContext.ToListAsync());
         }
 
         // GET: Users/Details/5
