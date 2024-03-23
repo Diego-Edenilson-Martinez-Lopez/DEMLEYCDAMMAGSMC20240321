@@ -18,7 +18,7 @@ namespace DEMLEYCDAMMAGSMC20240321.Models
         [Required(ErrorMessage = "El nombre de usuario es obligatorio.")]
         [StringLength(50, ErrorMessage = "El nombre de usuario no puede tener más de 50 caracteres.")]
         [Display(Name = "Nombre")]
-        public string UserName { get; set; }
+        public string UserName { get; set; } = null!;
 
         [Required(ErrorMessage = "La contraseña es obligatoria.")]
         [StringLength(32, MinimumLength = 6, ErrorMessage = "La contraseña debe tener entre 6 y 32 caracteres.")]
@@ -37,7 +37,7 @@ namespace DEMLEYCDAMMAGSMC20240321.Models
         public byte Status { get; set; }
 
         [Display(Name = "Imagen")]
-        public byte[] Image { get; set; }
+        public byte[]? Image { get; set; }
 
         [Required(ErrorMessage = "El rol es obligatorio.")]
         [Display(Name = "Rol")]
@@ -45,6 +45,6 @@ namespace DEMLEYCDAMMAGSMC20240321.Models
 
         [NotMapped]
         public int Take { get; set; }
-        public virtual ICollection<Roles> Roles { get; set; }
+        public virtual ICollection<Roles> Roles { get; set; } = null!;
     }
 }

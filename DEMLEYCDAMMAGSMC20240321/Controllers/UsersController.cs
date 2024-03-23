@@ -32,7 +32,8 @@ namespace DEMLEYCDAMMAGSMC20240321.Controllers
             //var users = await _context.Users.Include(u => u.Roles).ToListAsync();
             //return View(users);
 
-            var AplicationDBContext = _context.Users.Include(p => p.Roles);
+            var AplicationDBContext = _context.Users
+                .Include(p => p.Roles);
             return View(await AplicationDBContext.ToListAsync());
         }
 
